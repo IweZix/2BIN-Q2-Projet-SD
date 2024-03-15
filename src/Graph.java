@@ -84,7 +84,7 @@ public class Graph {
   }
 
   /**
-   * Calculate the route minimizing the number of roads using a BFS
+   * Calculate the route minimizing the number of roads using a DFS
    * @param depart city of departure
    * @param arrivee city of arrival
    */
@@ -97,15 +97,15 @@ public class Graph {
       return;
     }
 
-    bfs(departCity, arriveeCity);
+    dfs(departCity, arriveeCity);
   }
 
   /**
-   * Breadth-first search
+   * deep first search
    * @param departCity city of departure
    * @param arriveeCity city of arrival
    */
-  private void bfs(City departCity, City arriveeCity) {
+  private void dfs(City departCity, City arriveeCity) {
     int nbRoads = 0;
     double nbKm = 0;
 
