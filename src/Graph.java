@@ -158,28 +158,6 @@ public class Graph {
   }
 
   /**
-   * Print the path
-   * @param pathCities list of cities
-   * @param pathDistances list of distances
-   * @param nbRoads number of roads
-   * @param nbKm number of kilometers
-   */
-  private void printPath(List<City> pathCities, List<String> pathDistances, int nbRoads, double nbKm) {
-    System.out.println("Trajet de " + pathCities.getFirst().getNom() + " à " + pathCities.getLast().getNom() + " : " + nbRoads + " routes et " + nbKm + " km");
-
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < pathCities.size() - 1; i++) {
-      sb.append(pathCities.get(i).getNom())
-          .append(" -> ")
-          .append(pathCities.get(i + 1).getNom())
-          .append(" : ")
-          .append("(").append(pathDistances.get(i)).append(")")
-          .append(" km\n");
-    }
-    System.out.println(sb.toString());
-  }
-
-  /**
    * Calculate the route minimizing the number of kilometers using Dijkstra's algorithm
    * @param depart city of departure
    * @param arrivee city of arrival
@@ -203,7 +181,96 @@ public class Graph {
    * @param arriveeCity city of arrival
    */
   private void dijkstra(City departCity, City arriveeCity) {
-    // TODO
+    Map<City, Double> distances = new HashMap<>();
+    Map<City, City> predecesseur = new HashMap<>();
+    Set<City> visited = new HashSet<>();
+    int nbRoads = 0;
+
+    for (City c : ListDAdjacence.keySet()) {
+      distances.put(c, Double.MAX_VALUE);
+    }
+
+    distances.put(departCity, 0.0);
+    predecesseur.put(departCity, null);
+
+    City actual = departCity;
+    while (actual != null) {
+      for (Road r : ListDAdjacence.get(actual)) {
+        City voisin = ListDAdjacence.keySet().stream()
+            .filter(c -> c.getId() == r.getExtremite2())
+            .findFirst().orElse(null);
+        if (voisin != null && !visited.contains(voisin)) {
+          double distance = Util.distance(actual.getLongitute(), actual.getLatitude(), voisin.getLongitute(), voisin.getLatitude());
+          if (distances.get(voisin) > distances.get(actual) + distance) {
+            distances.put(voisin, distances.get(actual) + distance);
+            predecesseur.put(voisin, actual);
+          }
+        }
+      }
+      visited.add(actual);
+      actual = getMinDistance(distances, visited);
+    }
+
+    List<City> pathCities = new ArrayList<>();
+    List<String> pathDistances = new ArrayList<>();
+    actual = arriveeCity;
+    while (actual != null) {
+      City previous = predecesseur.get(actual);
+      if (previous != null) {
+        nbRoads++;
+        double km = Util.distance(actual.getLongitute(), actual.getLatitude(), previous.getLongitute(), previous.getLatitude());
+        pathCities.add(actual);
+        pathDistances.add(df.format(km));
+      }
+      actual = previous;
+    }
+    pathCities.add(departCity);
+
+    pathCities = pathCities.reversed();
+    pathDistances = pathDistances.reversed();
+    printPath(pathCities, pathDistances, nbRoads, distances.get(arriveeCity));
+
+
+  }
+
+  /**
+   * Get the city with the minimum distance
+   * @param distances map of distances
+   * @param visited set of visited cities
+   * @return the city with the minimum distance
+   */
+  private City getMinDistance(Map<City, Double> distances, Set<City> visited) {
+    City minCity = null;
+    double minDistance = Double.MAX_VALUE;
+    for (City c : distances.keySet()) {
+      if (!visited.contains(c) && distances.get(c) < minDistance) {
+        minDistance = distances.get(c);
+        minCity = c;
+      }
+    }
+    return minCity;
+  }
+
+  /**
+   * Print the path
+   * @param pathCities list of cities
+   * @param pathDistances list of distances
+   * @param nbRoads number of roads
+   * @param nbKm number of kilometers
+   */
+  private void printPath(List<City> pathCities, List<String> pathDistances, int nbRoads, double nbKm) {
+    System.out.println("Trajet de " + pathCities.getFirst().getNom() + " à " + pathCities.getLast().getNom() + " : " + nbRoads + " routes et " + nbKm + " km");
+
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < pathCities.size() - 1; i++) {
+      sb.append(pathCities.get(i).getNom())
+          .append(" -> ")
+          .append(pathCities.get(i + 1).getNom())
+          .append(" : ")
+          .append("(").append(pathDistances.get(i)).append(")")
+          .append(" km\n");
+    }
+    System.out.println(sb);
   }
 
 
