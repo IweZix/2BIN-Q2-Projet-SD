@@ -4,19 +4,19 @@ import java.util.Objects;
 
 public class Road {
 
-  private int extremite1, extremite2;
+  private City extremite1, extremite2;
 
-  public Road(int extremite1, int extremite2) {
+  public Road(City extremite1, City extremite2) {
     this.extremite1 = extremite1;
     this.extremite2 = extremite2;
   }
 
-  public int getExtremite1() {
+  public City getExtremite1() {
     return extremite1;
   }
 
 
-  public int getExtremite2() {
+  public City getExtremite2() {
     return extremite2;
   }
 

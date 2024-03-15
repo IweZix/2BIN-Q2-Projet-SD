@@ -73,8 +73,8 @@ public class Graph {
       String[] data = line.split(",");
       int e1 = Integer.parseInt(data[0]);
       int e2 = Integer.parseInt(data[1]);
-      Road r = new Road(e1, e2);
-      Road r2 = new Road(e2, e1);
+      Road r = new Road(cityMap.get(e1),cityMap.get(e2));
+      Road r2 = new Road(cityMap.get(e2), cityMap.get(e1));
       this.ListDAdjacence.get(this.cityMap.get(e1)).add(r);
       this.ListDAdjacence.get(this.cityMap.get(e2)).add(r2);
     }
@@ -120,7 +120,7 @@ public class Graph {
         break;
       }
       for (Road r : ListDAdjacence.get(actual)) {
-        City voisin = this.cityMap.get(r.getExtremite2());
+        City voisin = this.cityMap.get(r.getExtremite2().getId());
         if (!visited.contains(voisin)) {
           file.add(voisin);
           visited.add(voisin);
@@ -189,7 +189,7 @@ public class Graph {
     City actual = departCity;
     while (actual != null) {
       for (Road r : ListDAdjacence.get(actual)) {
-        City voisin = cityMap.get(r.getExtremite2());
+        City voisin = cityMap.get(r.getExtremite2().getId());
         if (voisin != null && !visited.contains(voisin)) {
           double distance = Util.distance(actual.getLongitute(), actual.getLatitude(), voisin.getLongitute(), voisin.getLatitude());
           if (distances.get(voisin) > distances.get(actual) + distance) {
