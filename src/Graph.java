@@ -22,6 +22,7 @@ public class Graph {
 
   private final Map<City, Set<Road>> ListDAdjacence;
   private final Map<String, City> cities;
+  private final Map<Integer, City> cityMap;
 
 
   /**
@@ -33,6 +34,7 @@ public class Graph {
   Graph(File cities, File roads) throws IOException {
     this.ListDAdjacence = new HashMap<>();
     this.cities = new HashMap<>();
+    this.cityMap = new HashMap<>();
 
     loadCities(cities);
     loadRoads(roads);
@@ -55,6 +57,7 @@ public class Graph {
       City c = new City(id, nom, longitude, latitude);
       this.ListDAdjacence.put(c, new HashSet<>());
       this.cities.put(nom, c);
+      this.cityMap.put(id, c);
     }
   }
 
@@ -72,14 +75,8 @@ public class Graph {
       int e2 = Integer.parseInt(data[1]);
       Road r = new Road(e1, e2);
       Road r2 = new Road(e2, e1);
-      for (City c : this.ListDAdjacence.keySet()) {
-        if (c.getId() == e1) {
-          this.ListDAdjacence.get(c).add(r);
-        }
-        if (c.getId() == e2) {
-          this.ListDAdjacence.get(c).add(r2);
-        }
-      }
+      this.ListDAdjacence.get(this.cityMap.get(e1)).add(r);
+      this.ListDAdjacence.get(this.cityMap.get(e2)).add(r2);
     }
   }
 
@@ -97,15 +94,15 @@ public class Graph {
       return;
     }
 
-    dfs(departCity, arriveeCity);
+    bfs(departCity, arriveeCity);
   }
 
   /**
-   * deep first search
+   *
    * @param departCity city of departure
    * @param arriveeCity city of arrival
    */
-  private void dfs(City departCity, City arriveeCity) {
+  private void bfs(City departCity, City arriveeCity) {
     int nbRoads = 0;
     double nbKm = 0;
 
@@ -122,16 +119,12 @@ public class Graph {
       if (actual.equals(arriveeCity)) {
         break;
       }
-      if (ListDAdjacence.containsKey(actual)) {
-        for (Road r : ListDAdjacence.get(actual)) {
-          City voisin = ListDAdjacence.keySet().stream()
-              .filter(c -> c.getId() == r.getExtremite2())
-              .findFirst().orElse(null);
-          if (voisin != null && !visited.contains(voisin)) {
-            file.add(voisin);
-            visited.add(voisin);
-            predecesseur.put(voisin, actual);
-          }
+      for (Road r : ListDAdjacence.get(actual)) {
+        City voisin = this.cityMap.get(r.getExtremite2());
+        if (!visited.contains(voisin)) {
+          file.add(voisin);
+          visited.add(voisin);
+          predecesseur.put(voisin, actual);
         }
       }
     }
@@ -196,9 +189,7 @@ public class Graph {
     City actual = departCity;
     while (actual != null) {
       for (Road r : ListDAdjacence.get(actual)) {
-        City voisin = ListDAdjacence.keySet().stream()
-            .filter(c -> c.getId() == r.getExtremite2())
-            .findFirst().orElse(null);
+        City voisin = cityMap.get(r.getExtremite2());
         if (voisin != null && !visited.contains(voisin)) {
           double distance = Util.distance(actual.getLongitute(), actual.getLatitude(), voisin.getLongitute(), voisin.getLatitude());
           if (distances.get(voisin) > distances.get(actual) + distance) {
