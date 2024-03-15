@@ -15,17 +15,34 @@ import java.util.Set;
 
 public class Graph {
 
-  private final HashMap<City, Set<Road>> cities;
+  /**
+   * Decimal format for the distance
+   */
+  private static final DecimalFormat df = new DecimalFormat("#.##");
 
-  DecimalFormat df = new DecimalFormat("#.##");
+  private final Map<City, Set<Road>> ListDAdjacence;
+  private final Map<String, City> cities;
 
+
+  /**
+   * Constructor
+   * @param cities File containing the cities
+   * @param roads File containing the roads
+   * @throws IOException if an error occurs while reading the files
+   */
   Graph(File cities, File roads) throws IOException {
+    this.ListDAdjacence = new HashMap<>();
     this.cities = new HashMap<>();
 
     loadCities(cities);
     loadRoads(roads);
   }
 
+  /**
+   * Load the cities from the file
+   * @param cities File containing the cities
+   * @throws IOException if an error occurs while reading the file
+   */
   private void loadCities(File cities) throws IOException {
     BufferedReader br = new BufferedReader(new FileReader(cities));
     String line;
@@ -36,10 +53,16 @@ public class Graph {
       double longitude = Double.parseDouble(data[2]);
       double latitude = Double.parseDouble(data[3]);
       City c = new City(id, nom, longitude, latitude);
-      this.cities.put(c, new HashSet<>());
+      this.ListDAdjacence.put(c, new HashSet<>());
+      this.cities.put(nom, c);
     }
   }
 
+  /**
+   * Load the roads from the file
+   * @param roads File containing the roads
+   * @throws IOException if an error occurs while reading the file
+   */
   public void loadRoads(File roads) throws IOException {
     BufferedReader br = new BufferedReader(new FileReader(roads));
     String line;
@@ -49,31 +72,40 @@ public class Graph {
       int e2 = Integer.parseInt(data[1]);
       Road r = new Road(e1, e2);
       Road r2 = new Road(e2, e1);
-      for (City c : this.cities.keySet()) {
+      for (City c : this.ListDAdjacence.keySet()) {
         if (c.getId() == e1) {
-          this.cities.get(c).add(r);
+          this.ListDAdjacence.get(c).add(r);
         }
         if (c.getId() == e2) {
-          this.cities.get(c).add(r2);
+          this.ListDAdjacence.get(c).add(r2);
         }
       }
     }
   }
 
-
+  /**
+   * Calculate the route minimizing the number of roads using a BFS
+   * @param depart city of departure
+   * @param arrivee city of arrival
+   */
   public void calculerItineraireMinimisantNombreRoutes(String depart, String arrivee) {
-    City departCity = cities.keySet().stream()
-        .filter(c -> c.getNom().equals(depart))
-        .findFirst().orElse(null);
-    City arriveeCity = cities.keySet().stream()
-        .filter(c -> c.getNom().equals(arrivee))
-        .findFirst().orElse(null);
+    City departCity = cities.get(depart);
+    City arriveeCity = cities.get(arrivee);
 
     if (departCity == null || arriveeCity == null) {
       System.out.println("City not found.");
       return;
     }
 
+    bfs(departCity, arriveeCity);
+  }
+
+  /**
+   * Breadth-first search
+   * @param departCity city of departure
+   * @param arriveeCity city of arrival
+   */
+  private void bfs(City departCity, City arriveeCity) {
     int nbRoads = 0;
     double nbKm = 0;
 
@@ -90,9 +122,9 @@ public class Graph {
       if (actual.equals(arriveeCity)) {
         break;
       }
-      if (cities.containsKey(actual)) {
-        for (Road r : cities.get(actual)) {
-          City voisin = cities.keySet().stream()
+      if (ListDAdjacence.containsKey(actual)) {
+        for (Road r : ListDAdjacence.get(actual)) {
+          City voisin = ListDAdjacence.keySet().stream()
               .filter(c -> c.getId() == r.getExtremite2())
               .findFirst().orElse(null);
           if (voisin != null && !visited.contains(voisin)) {
@@ -122,8 +154,18 @@ public class Graph {
 
     pathCities = pathCities.reversed();
     pathDistances = pathDistances.reversed();
+    printPath(pathCities, pathDistances, nbRoads, nbKm);
+  }
 
-    System.out.println("Trajet de " + depart + " à " + arrivee + " : " + nbRoads + " routes et " + nbKm + " km");
+  /**
+   * Print the path
+   * @param pathCities list of cities
+   * @param pathDistances list of distances
+   * @param nbRoads number of roads
+   * @param nbKm number of kilometers
+   */
+  private void printPath(List<City> pathCities, List<String> pathDistances, int nbRoads, double nbKm) {
+    System.out.println("Trajet de " + pathCities.getFirst().getNom() + " à " + pathCities.getLast().getNom() + " : " + nbRoads + " routes et " + nbKm + " km");
 
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < pathCities.size() - 1; i++) {
@@ -137,8 +179,31 @@ public class Graph {
     System.out.println(sb.toString());
   }
 
+  /**
+   * Calculate the route minimizing the number of kilometers using Dijkstra's algorithm
+   * @param depart city of departure
+   * @param arrivee city of arrival
+   */
   public void calculerItineraireMinimisantKm(String depart, String arrivee) {
+    System.out.println("Calcul de l'itinéraire minimisant le nombre de kilomètres");
+    City departCity = cities.get(depart);
+    City arriveeCity = cities.get(arrivee);
 
+    if (departCity == null || arriveeCity == null) {
+      System.out.println("City not found.");
+      return;
+    }
+
+    dijkstra(departCity, arriveeCity);
+  }
+
+  /**
+   * Dijkstra's algorithm
+   * @param departCity city of departure
+   * @param arriveeCity city of arrival
+   */
+  private void dijkstra(City departCity, City arriveeCity) {
+    // TODO
   }
 
 
